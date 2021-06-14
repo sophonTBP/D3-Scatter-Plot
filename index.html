@@ -1,0 +1,197 @@
+
+
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Alpe D'u</title>
+        <head>
+            <script src="https://d3js.org/d3.v6.min.js"></script>
+        </head>
+    <style>
+            
+            
+    .tooltip {	
+        
+      position: absolute;
+        text-align: center;			
+        width: 75px;					
+        height: 48px;					
+        padding: 2px;				
+        font: 12px sans-serif;		
+        background: lightsteelblue;	
+        color: black;
+        border: 0px;		
+        border-radius: 8px;			
+        pointer-events: none;			
+    }
+    
+    
+    
+    
+    
+          </style>
+    <body>
+        <title id="title">Doping "allegations" in Le Tour de France </title>
+    <div id="graph-container">
+    </div>     
+    <script>
+    format=(sec) =>(sec-(sec%=60))/60+(9<sec?':':':0')+sec 
+    const api_url = 'https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/cyclist-data.json'
+    
+    function getData() {
+      return new Promise((resolve, reject) => {
+        fetch(api_url)
+         .then(response => {
+           return response.json();
+          }).then(data_from_fetched => {
+             let data = JSON.parse(JSON.stringify(data_from_fetched));
+             resolve(data);
+       
+       })    
+      }
+      )}
+      
+    let arr =[];
+    getData().then(data => {
+       console.log(data)
+       
+    const w = 800;
+          const h = 500;
+          const padding = 50;
+          dataset=data
+         const xScale = d3.scaleLinear()
+                          .domain([(d3.min(dataset, (d) => d["Year"]))-1, d3.max(dataset, (d) => d["Year"])+1])
+                          .range([padding, w - padding]);
+      
+         const yScale = d3.scaleLinear()
+                          .domain([d3.max(dataset, (d) => d["Seconds"]), d3.min(dataset, (d) => d["Seconds"])])
+                          .range([h - padding, padding]);
+         
+                                  
+      
+           const svg = d3.select("#graph-container")
+                         .append("svg")
+                         .attr("viewBox", "0 0 1000 500")
+                         .classed("svg-content", true)
+                         .attr("width", w)
+                         .attr("height", h);
+      
+         const xAxis = d3.axisBottom(xScale)
+                         .tickFormat(x =>x);
+    
+                      svg.append("g")
+                         .attr("transform", "translate(0," + (h - padding) + ")")
+                         .attr("id","x-axis")
+                         .call(xAxis);
+           
+          
+        const yAxis =  d3.axisLeft(yScale)
+                         .tickFormat(x =>format(x)); 
+          
+      
+                      svg.append("g")
+                         .attr("transform", "translate("+(padding)+",0)")
+                         .attr("id","y-axis")
+                         .call(yAxis)
+             
+      
+        var Tooltip = d3.select("body")
+                          .append("div")
+                          .style("opacity", 0)
+                          .attr("class", "tooltip")
+                          .attr("id", "tooltip")
+                          
+                          
+        var mouseover = function(event,d) {
+                       Tooltip
+                          .style("opacity", 1)
+                     .html(( d["Name"]+"<br/>" +d["Year"]))
+                          .style("left", (event.pageX+15) + "px")
+                          .style("top", (event.pageY+5)+ "px") 
+                          .attr("data-year", d["Year"])
+                        }
+        
+                         
+        var mouseleave = function(d) {
+                       Tooltip
+                          .style("opacity", 0)
+                        d3.select(this)
+                          .style("stroke", "none")
+                          .style("opacity", 0.8)
+                        }                      
+                         
+    
+    
+          svg.selectAll("circle")
+             .data(dataset)
+             .enter()
+             .append("circle")
+             .attr("cx", (d) => xScale(d["Year"]))
+             .attr("cy",(d) => yScale(d["Seconds"]))
+             .attr("r", (d) => 5)
+             .attr("class","dot")
+             .attr("data-xvalue", (d) => d["Year"])
+             .attr("data-yvalue", (d) => new Date(d["Seconds"]*1000).toISOString())
+             .on("mouseover", mouseover)					
+             
+             .on("mouseleave", mouseleave)
+             .style("fill", function(d){
+              if(d["Doping"]!==""){
+                return "hsl(0, 81%, 46%)"
+              } else { 
+                return "hsl(239, 81%, 46%)" }
+            })
+            
+             svg.append("g")
+             .attr("id","legend")
+             svg.append("circle")
+             .attr("cx",570)
+             .attr("cy",125)
+             .attr("r", 6)
+             .style("fill", "hsl(0, 81%, 46%)")
+            svg.append("circle")
+            .attr("cx",570)
+            .attr("cy",155)
+            .attr("r", 6)
+            .style("fill", "hsl(239, 81%, 46%)")
+            svg.append("text")
+            .attr("x", 600)
+            .attr("y", 130)
+            .text("Riders with doping allegations")
+            .style("font-size", "15px")
+            .attr("alignment-baseline","middle")
+            svg.append("text")
+            .attr("x", 600)
+            .attr("y", 160)
+            .text("No doping allegations")
+            .style("font-size", "15px")
+            .attr("alignment-baseline","middle")
+    
+    
+    
+    
+    
+    
+    
+    
+    
+     
+    });
+     
+    
+    </script> 
+       
+    
+      
+    
+    
+    
+    <script src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"></script>
+    </body>
+    
+    </html>
+    
